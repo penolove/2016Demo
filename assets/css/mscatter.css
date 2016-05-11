@@ -1,0 +1,63 @@
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* non-prefixed version, currently not supported by any browser */
+  cursor:pointer;                                
+}
+
+.axis path,.axis line {
+               fill: none;
+               stroke: #000;
+               shape-rendering: crispEdges;
+}
+.axis text {
+			font-family: sans-serif;
+			font-size: 11px;
+}
+body {
+//    background-color: lightblue;
+}
+div.iconimage {
+   background-image:url(loser.png);
+   background-repeat: no-repeat;
+   background-size: contain;
+}
+
+div.iconimage1 {
+   background-image:url(spark.png);
+   background-repeat: no-repeat;
+   background-size: contain;
+}
+
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    //width: 60px;					
+    //height: 28px;					
+    padding: 3px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 5px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}
+
+
+div.menu {		
+    text-align: center;			
+}
+
+div.menu_seting_title {		
+    text-align: left;			
+}
+
+.input-w label, .input-w input {
+  display:inline-block;
+  width:45%;
+}
+.layer2btn {
+	text-align: center;	
+}
