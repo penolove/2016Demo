@@ -43,25 +43,9 @@
 	function window_partition(div_dim){
 		//function called to add menu_item_layer1 included onclick call what function
 		function add_menu_item_layer1(menu,menu_parameter,count,parameter_setting,paddw){ 
-			//clear plot div in menu layer1
-			//I should rename rd+count
-			menu.append("div")
-				.attr("selector","rd"+count)
-				.attr("class","menu noselect")
-				.style("padding","5px")
-				.html("clear plot")
-				.attr("unselectable","on")
-				.on("mouseover",function(){d3.select(this).style("font-weight","bold")})
-				.on("mouseout",function(){d3.select(this).style("font-weight","normal")})
-				.on("click", function(){
-							var selector =d3.select(this).attr("selector");
-							remove_context(selector);
-							});
-				
-							
 			//============function of layer 1=================				
 			
-
+			/*
 			//Iutput-FlowRate div in menu layer1
 			menu.append("div")
 				.attr("selector","rd"+count)
@@ -79,7 +63,7 @@
 								target="Spark"+target;
 							}
 							stream_trend_plot_on(parameter_setting["plot_setting"],
-											selector,target,y_axisscale_throughput);
+											selector,target,y_axisscale_throughput,x_axisscale);
 							})
 				.on("contextmenu", function(){
 								if(menu_parameter.style("opacity")<0.5){
@@ -116,7 +100,7 @@
 							if(count>3){
 								target="Spark"+target;
 							}
-							stream_trend_plot_on(parameter_setting["plot_setting"],selector,target,y_axisscale_throughput);
+							stream_trend_plot_on(parameter_setting["plot_setting"],selector,target,y_axisscale_throughput,x_axisscale);
 							})
 				.on("contextmenu", function(){
 								if(menu_parameter.style("opacity")<0.5){
@@ -154,7 +138,7 @@
 								target="Spark"+target;
 							}
 							stream_trend_plot_on(parameter_setting["plot_setting"],
-											selector,target,y_axisscale_latency);
+											selector,target,y_axisscale_latency,x_axisscale);
 							})
 				.on("contextmenu", function(){
 								if(menu_parameter.style("opacity")<0.5){
@@ -209,11 +193,40 @@
 								d3.event.preventDefault();
 							});
 			//empty plot div in menu layer1
-
+			*/
 			//==================================================
+
+			//clear plot div in menu layer1
+			//I should rename rd+count
+			menu.append("div")
+				.attr("selector","rd"+count)
+				.attr("class","menu noselect")
+				.style("padding","5px")
+				.html("clear plot")
+				.attr("unselectable","on")
+				.on("mouseover",function(){d3.select(this).style("font-weight","bold")})
+				.on("mouseout",function(){d3.select(this).style("font-weight","normal")})
+				.on("click", function(){
+							var selector =d3.select(this).attr("selector");
+							remove_context(selector);
+							});
+			menu.append("div")
+				.attr("selector","rd"+count)
+				.attr("class","menu noselect")
+				.style("padding","5px")
+				.html("clear lines")
+				.attr("unselectable","on")
+				.on("mouseover",function(){d3.select(this).style("font-weight","bold")})
+				.on("mouseout",function(){d3.select(this).style("font-weight","normal")})
+				.on("click", function(){
+							var selector =d3.select(this).attr("selector");
+							remove_trend(selector);
+							});
+							
 		}
 
 		//function called to add menu_item_layer2 included set parameter and send to each function
+		
 		function add_menu_item_layer2(menu_parameter,count,scatter_plot_setting,plot_setting,trend_chart_setting){
 					
 					
@@ -305,7 +318,7 @@
 								 .attr("class","layer2btn")
 								 .html("complete")				
 		}
-					
+		
 		//function called to update drawing parameter
 		function update_parameter(count,scatter_plot_setting,trend_chart_setting,plot_setting){
 			//oop
@@ -324,7 +337,12 @@
 			d3.select("#"+selector).selectAll("svg").remove();
 			d3.selectAll("#tooltip"+selector).remove();
 		}
-	
+		function remove_trend(selector){
+			console.log("."+selector+"trend");
+			d3.selectAll("."+selector+"trend").remove();
+			//d3.selectAll("#tooltip"+selector).remove();
+		}	
+
 		function create_logo(divs,count,paddw,menu){
 			var clasy="iconimage";
 			if(count>3){
@@ -360,8 +378,16 @@
 								}) 
 		}
 
-		var y_axisscale_latency=d3.scale.linear();
+		var y_axisscale_latency=d3.scale.linear().domain([1,-0.025]);
 		var y_axisscale_throughput=d3.scale.linear().domain([200,-5]);
+		var x_axisscale=d3.time.scale();
+		//
+		var time_interval=[];
+		var temp_date=new Date();
+			time_interval.push(temp_date);
+			time_interval.push(temp_date+5);
+		var x_axisscale=d3.time.scale().domain(d3.extent(time_interval));
+
 		for (i = 0; i < div_dim[0]; i++) {
 			var container=d3.select("body")
 							.append("div");
@@ -373,15 +399,15 @@
 						 .attr("id","rd"+count)
 						 .attr("class","sel")
 						 .style("display","inline-block")
-						 .style("position","relative");
-
-
-					divs.transition()		
-						.duration(350)	 
+						 .style("position","relative")
 						 .style("padding-left",paddw+"px")
 						 .style("padding-bottom",window_height/div_dim[0]*0.05+"px")
 						 .style("width",window_width/div_dim[1]*0.88+"px")
 						 .style("height",window_height/div_dim[0]*0.88+"px");
+
+					/*divs.transition()		
+						.duration(350)*/	 
+
 
 
 				//menu layer1
@@ -424,11 +450,24 @@
 				create_logo(divs,count,paddw,menu);
 				add_menu_item_layer1(menu,menu_parameter,count,parameter_setting,paddw);
 				add_menu_item_layer2(menu_parameter,count,scatter_plot_setting,plot_setting,trend_chart_setting);
-
+				var selector="rd"+count;
+				if(count%3!=0){
+					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_throughput,x_axisscale,count);
+				}else{
+					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_latency,x_axisscale,count);
+				}
 				count=count+1;
 			}
 		}
+		var InfoConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Info");
+		var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark");
+		//var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,"Spark");
 
+		/*
+		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
+		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
+		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
+*/
 	}
 </script>
 </html>

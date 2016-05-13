@@ -139,8 +139,8 @@
 	}
 
 
-	function stream_trend_plot_on(plot_setting,selector,target,y_axisscale){
-
+	function stream_trend_plot_on(plot_setting,selector,y_axisscale,x_axisscale,count){
+		//just like empty plot 
 		//using a websocket to consturct streaming
 		//make this global that all draws in same scale(WrapperWs need to modify,too.)
 		var time_interval=[];
@@ -148,13 +148,35 @@
 		//
 	 	var svgC_width=parseInt(d3.select("#"+selector).style("width"))
 		var svgC_height=parseInt(d3.select("#"+selector).style("height"))
-		var svgContainer = d3.select("#"+selector).append("svg").attr("width", svgC_width).attr("height", svgC_height);
-		var first=0;
-		console.log("strat function");
-
-		var connection = new WrapperWS(svgContainer,selector,plot_setting,time_interval,dataY,target,y_axisscale);
+		var svgContainer = d3.select("#"+selector)
+							.append("svg")
+							.attr("width", svgC_width)
+							.attr("height", svgC_height)
+							.attr("id","svg"+selector);
 
 		addclip(svgContainer,plot_setting,selector);
+		var first=0;
+		if(count<=3){
+			if(count%3!=0)
+				selector="axis_Throughput";
+			else
+				selector="axis_Latency";
+		}else{
+			if(count%3!=0)
+				selector="axis_Throughput";
+			else
+				selector="axis_Latency";
+		}
+		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
 
-		return connection;
+
+
+
+		selector="axis_timestamp"
+		drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+
+
+		
+
+		//return connection;
 	}

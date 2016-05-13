@@ -482,7 +482,7 @@
 	} 
 
 
-	function draw_messagedot(svgContainer,plot_setting,selector,x_axisscale,y_axisscale,temp_date,evt,first,drawset){
+	function draw_messagedot(svgContainer,plot_setting,col_selector,com_selector,x_axisscale,y_axisscale,temp_date,x_data,first,drawset){
 
 
 		//used in :[stream_trend_plot_on]
@@ -502,8 +502,8 @@
 		}
 		
 		svgContainer.append('line')
-			.attr('class',selector+"trend")
-			.attr("clip-path","url(#clip"+selector+")")
+			.attr('class',com_selector+"trend"+" axis_timestamptrend")
+			.attr("clip-path","url(#clip"+col_selector+")")
 			.attr('x1',function() {
 				if(first==0){
 					drawset["trend_pre_date"]=temp_date;
@@ -527,55 +527,54 @@
 				}}) 
 			.attr('y1',function() {
 				if(first==0){
-					drawset["trend_tempy"]=evt.data;
-					drawset["trend_prey"]=evt.data;
+					drawset["trend_tempy"]=x_data;
+					drawset["trend_prey"]=x_data;
 					if(1-isNaN(y_axisscale(drawset["trend_tempy"]))){
-						return y_axisscale(drawset["trend_tempy"])
+						return y_axisscale(drawset["trend_tempy"])+setoff_height
 					}
 				}else{
 					drawset["trend_prey"]=drawset["trend_tempy"];
-					drawset["trend_tempy"]=evt.data;
+					drawset["trend_tempy"]=x_data;
 					if(1-isNaN(y_axisscale(drawset["trend_prey"]))){
 						return y_axisscale(drawset["trend_prey"])+setoff_height;
 					}
 				}})
 			.attr('x2',function() {return x_axisscale(temp_date)+setoff_width;})
-			.attr('y2',function() {return y_axisscale(evt.data)+setoff_height;})
+			.attr('y2',function() {return y_axisscale(x_data)+setoff_height;})
 			.attr('orix1',Date.parse(drawset["trend_pre_date"]))
 			.attr('orix2',Date.parse(temp_date))
 			.attr('oriy1',drawset["trend_prey"])
-			.attr('oriy2',evt.data)
+			.attr('oriy2',x_data)
 			.attr('stroke-linecap','round')
 			.attr('stroke-width',3)
 			.attr("opacity",0.95)
-			.style('stroke',function(){return color(selector)});
+			.style('stroke',function(){return color(col_selector)});
 
 		//color is global variable defined in mscatter_plot.httml
-		d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x1",x_axisscale(d3.select(this).attr("orix1"))+setoff_width) ;});
-		d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x2",x_axisscale(d3.select(this).attr("orix2"))+setoff_width) ;});
-		d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale(d3.select(this).attr("oriy1"))+setoff_height) ;});
-		d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale(d3.select(this).attr("oriy2"))+setoff_height) ;});
+
 
 	}
 
 
-	var WrapperWS =function(svgContainer,selector,plot_setting,time_interval,dataY,target,y_axisscale) {
+
+	var WrapperWS =function(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,Topic) {
 		
-		var trend_temp_x;
-		var trend_pre_date;
-		var trend_temp_date;
 
-		var trend_tempy;
-		var trend_prey;
+		var drawset_InputRate={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
+		var drawset_OutputRate={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
+		var drawset_latency={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
 
-		var drawset={"trend_temp_x":trend_temp_x,"trend_pre_date":trend_pre_date,"trend_temp_date":trend_temp_date,"trend_tempy":trend_tempy,"trend_prey":trend_prey};
+
+		var DataLatency=[];
+		var DataInR=[];
 
 		var first=0;
 		//"ws://localhost:8080/websocketServer/"+selector
 		//"ws://localhost:8080/websocketServer/"+target
 		//ws://echo.websocket.org/
-		var wsUri = "ws://localhost:8080/websocketServer/Kafka/"+target;
-		console.log(target);
+		var wsUri = "ws://localhost:8080/websocketServer/Kafka/Records"+Topic;
+		console.log("Records"+Topic);
+
 		var websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) { onOpen(evt) };
 		websocket.onclose = function(evt) { onClose(evt) };
@@ -584,8 +583,6 @@
 
 		var onOpen=function (evt){
 			console.log("CONNECTED on ");
-			websocket.send(Math.random().toFixed(2));
-
 		 }
 
 		var onClose=function (evt){
@@ -593,53 +590,149 @@
 		  }
 
 		var onMessage=function (evt){
+			console.log('RESPONSE:' + evt.data);
 			
-			console.log('RESPONSE: '+selector +" "+ evt.data);
-			
-			dataY.push(parseFloat(evt.data));
-			var temp_date=new Date()
-			time_interval.push(temp_date);
+			x=evt.data.split(",")
+			if(x.length==3){
 
-			if(dataY.length>300){
-				dataY.shift();
-				time_interval.shift();
+				DataLatency.push(parseFloat(x[2]));
+				DataInR.push(parseFloat(x[0]));
+				DataInR.push(parseFloat(x[1]));
+				var temp_date=new Date();
+				time_interval.push(temp_date);
+				//keep n datas in draw;
+				if(time_interval.length>400){
+					DataLatency.shift();
+					DataInR.shift();
+					DataInR.shift();
+					time_interval.shift();
+				}
+				var x_extent=d3.extent(time_interval);
+				var y_extent_TPT=exten4range(d3.extent(DataInR),0.05);
+				var y_extent_LTY=exten4range(d3.extent(DataLatency),0.05);
+
+				//consistency for axies
+				if(y_extent_TPT[0]==y_extent_TPT[1]){
+					y_extent_TPT[1]+=1;
+				}
+				if(y_extent_LTY[0]==y_extent_LTY[1]){
+					y_extent_LTY[1]+=1;
+				}
+
+				if(Topic=="Info"){
+					svgContainer=d3.select("#svgrd1");
+					com_selector="axis_Throughput"
+					draw_messagedot(svgContainer,plot_setting,"rd1",com_selector,x_axisscale,y_axisscale_throughput,temp_date,x[0],first,drawset_InputRate);
+					svgContainer=d3.select("#svgrd2");
+					com_selector="axis_Throughput"
+					draw_messagedot(svgContainer,plot_setting,"rd2",com_selector,x_axisscale,y_axisscale_throughput,temp_date,x[1],first,drawset_OutputRate);
+					svgContainer=d3.select("#svgrd3");
+					com_selector="axis_Latency"
+					draw_messagedot(svgContainer,plot_setting,"rd3",com_selector,x_axisscale,y_axisscale_latency,temp_date,x[2],first,drawset_latency);
+				}else{
+					svgContainer=d3.select("#svgrd4");
+					com_selector="axis_Throughput"
+					draw_messagedot(svgContainer,plot_setting,"rd4",com_selector,x_axisscale,y_axisscale_throughput,temp_date,x[0],first,drawset_InputRate);
+					svgContainer=d3.select("#svgrd5");
+					com_selector="axis_Throughput"
+					draw_messagedot(svgContainer,plot_setting,"rd5",com_selector,x_axisscale,y_axisscale_throughput,temp_date,x[1],first,drawset_OutputRate);
+					svgContainer=d3.select("#svgrd6");
+					com_selector="axis_Latency"
+					draw_messagedot(svgContainer,plot_setting,"rd6",com_selector,x_axisscale,y_axisscale_latency,temp_date,x[2],first,drawset_latency);
+
+				}
+
+				//update Throughputs
+				if(y_axisscale_throughput.domain()[0]<y_extent_TPT[1]){
+					//console.log(y_axisscale.domain())
+					y_extent_TPT[0]=0;
+					y_extent_TPT=exten4range(y_extent_TPT,0.05);
+					y_axisscale_throughput.domain(exchange_extent(y_extent_TPT));
+					selector="axis_Throughput";
+					d3.selectAll("."+selector+"left").remove();
+					svgContainer=d3.select("#svgrd1");
+					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
+					svgContainer=d3.select("#svgrd2");
+					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
+					svgContainer=d3.select("#svgrd4");
+					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
+					svgContainer=d3.select("#svgrd5");
+					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
+							//draw Setting;
+					var container_height=svgContainer.attr("height");
+					var container_width=svgContainer.attr("width");
+					//for left adjust
+					var ywidth_ratio=plot_setting["ywidth_ratio"];
+					var setoff_height=plot_setting["setoff_height"];
+					//Here God dame fuck setoff_height
+					if(container_height*(1-ywidth_ratio)/2>setoff_height){
+							var setoff_height=container_height*(1-ywidth_ratio)/2;
+					}
+					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale_throughput(d3.select(this).attr("oriy1"))+setoff_height) ;});
+					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale_throughput(d3.select(this).attr("oriy2"))+setoff_height) ;});
+
+				}
+				//update latencys
+				if(y_axisscale_latency.domain()[0]<y_extent_LTY[1]){
+					//console.log(y_axisscale.domain())
+					y_extent_LTY[0]=0;
+					y_extent_LTY=exten4range(y_extent_LTY,0.05);
+					
+					y_axisscale_latency.domain(exchange_extent(y_extent_LTY));
+					selector="axis_Latency"
+					d3.selectAll("."+selector+"left").remove();
+					svgContainer=d3.select("#svgrd3");
+					drawaxis(svgContainer,"left",y_axisscale_latency,selector,plot_setting);
+					svgContainer=d3.select("#svgrd6");
+					drawaxis(svgContainer,"left",y_axisscale_latency,selector,plot_setting);
+					var container_height=svgContainer.attr("height");
+					var container_width=svgContainer.attr("width");
+					//for left adjust
+					var ywidth_ratio=plot_setting["ywidth_ratio"];
+					var setoff_height=plot_setting["setoff_height"];
+					//Here God dame fuck setoff_height
+					if(container_height*(1-ywidth_ratio)/2>setoff_height){
+							var setoff_height=container_height*(1-ywidth_ratio)/2;
+					}
+					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale_latency(d3.select(this).attr("oriy1"))+setoff_height) ;});
+					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale_latency(d3.select(this).attr("oriy2"))+setoff_height) ;});
+
+				}
+				//update timestamp
+				if(x_axisscale.domain()[1]<x_extent[1]){
+					x_extent[0]=x_axisscale.domain()[0];
+					x_axisscale.domain(x_extent);
+					selector="axis_timestamp"
+					d3.selectAll("."+selector+"bottom").remove();
+					svgContainer=d3.select("#svgrd1");
+					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					svgContainer=d3.select("#svgrd2");
+					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					svgContainer=d3.select("#svgrd3");
+					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					svgContainer=d3.select("#svgrd4");
+					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					svgContainer=d3.select("#svgrd5");
+					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					svgContainer=d3.select("#svgrd6");
+					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					var container_height=svgContainer.attr("height");
+					var container_width=svgContainer.attr("width");
+					//for left adjust
+					var xwidth_ratio=plot_setting["xwidth_ratio"];
+					var setoff_width=plot_setting["setoff_width"];
+					//Here God dame fuck setoff_height
+					if(container_width*(1-xwidth_ratio)/2>setoff_width){
+							var setoff_width=container_width*(1-xwidth_ratio)/2;
+					}
+					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x1",x_axisscale(d3.select(this).attr("orix1"))+setoff_width) ;});
+					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x2",x_axisscale(d3.select(this).attr("orix2"))+setoff_width) ;});
+				}
+
+				first+=1;
+				
 			}
 
-			//websocket.close();
-			var x_extent=d3.extent(time_interval);
-			var y_extent=exten4range(d3.extent(dataY),0.05);
-
-			//at least 0,1
-			if(y_extent[0]==y_extent[1]){
-				y_extent[1]+=1;
-			}
-			
-			var x_axisscale=d3.time.scale().domain(x_extent);
-			
-			if(y_axisscale.domain()[0]<y_extent[1]){
-				console.log(y_axisscale.domain())
-				y_extent[0]=0;
-				y_extent=exten4range(y_extent,0.05);
-				y_axisscale.domain(exchange_extent(y_extent));
-			}
-			
-
-			d3.selectAll("."+selector+"left").remove();
-			d3.selectAll("."+selector+"bottom").remove();
-
-			//y axis were value axis
-			drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
-			//x axis were time axis
-			drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-			// append a dot
-			draw_messagedot(svgContainer,plot_setting,selector,x_axisscale,y_axisscale,temp_date,evt,first,drawset);
-			
-			//send to echo server
-			//pausecomp(1000)
-			//websocket.send(Math.random().toFixed(2));
-			//send to echo server
-
-			first=first+1;
 		}
 
 		var onError=function (evt){
@@ -647,24 +740,24 @@
 		  }
 
 		this.send = function (message, callback) {
-		    this.waitForConnection(function () {
-		        websocket.send(message);
-		        if (typeof callback !== 'undefined') {
-		          callback();
-		        }
-		    }, 1000);
+			this.waitForConnection(function () {
+				websocket.send(message);
+				if (typeof callback !== 'undefined') {
+				  callback();
+				}
+			}, 1000);
 		};
 
 		this.waitForConnection = function (callback, interval) {
-		    if (websocket.readyState === 1) {
-		        callback();
-		    } else {
-		        var that = this;
-		        // optional: implement backoff for interval here
-		        setTimeout(function () {
-		            that.waitForConnection(callback, interval);
-		        }, interval);
-		    }
+			if (websocket.readyState === 1) {
+				callback();
+			} else {
+				var that = this;
+				// optional: implement backoff for interval here
+				setTimeout(function () {
+					that.waitForConnection(callback, interval);
+				}, interval);
+			}
 		};
 
 
