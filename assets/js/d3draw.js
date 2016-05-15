@@ -169,12 +169,19 @@
 		}
 		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
 
-
-
-
 		selector="axis_timestamp"
 		drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-
+		
+		svgContainer.append('path')
+		            .attr('class',"rd"+count+"_path ")
+		            .attr("clip-path","url(#cliprd"+count+")")
+		            .attr({
+		              'y': 0,
+		              'stroke': color("rd"+count),
+		              'stroke-width': '3px',
+		              'fill': 'none',
+		              'opacity':0.95
+		            });
 
 		
 

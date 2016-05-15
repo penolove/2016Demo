@@ -38,7 +38,7 @@
 	
 	count=1;
 	var div_dim=[2,3];
-	window_partition(div_dim);
+	qp=window_partition(div_dim);
 
 	function window_partition(div_dim){
 		//function called to add menu_item_layer1 included onclick call what function
@@ -451,23 +451,27 @@
 				add_menu_item_layer1(menu,menu_parameter,count,parameter_setting,paddw);
 				add_menu_item_layer2(menu_parameter,count,scatter_plot_setting,plot_setting,trend_chart_setting);
 				var selector="rd"+count;
+
 				if(count%3!=0){
 					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_throughput,x_axisscale,count);
 				}else{
 					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_latency,x_axisscale,count);
 				}
+
 				count=count+1;
 			}
 		}
-		var InfoConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Info");
-		var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark");
-		//var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,"Spark");
 
-		/*
-		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
-		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
-		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
-*/
+		var InfoDataLatency=[];
+		var InfoDataInR=[];
+		var InfoDataOutR=[];
+		var SparkDataLatency=[];
+		var SparkDataInR=[];
+		var SparkDataOutR=[];
+		var DataArray={'IDL':InfoDataLatency,'IDIR':InfoDataInR,'IDOR':InfoDataOutR,'SDL':SparkDataLatency,'SDIR':SparkDataInR,'SDOR':SparkDataOutR};
+		var InfoConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Info",DataArray);
+		var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark",DataArray);
+		
 	}
 </script>
 </html>

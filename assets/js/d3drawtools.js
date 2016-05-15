@@ -130,7 +130,7 @@
 									 .attr("class", "axis "+selector+direction)
 									 .attr("transform", "translate("+setoff_width+"," +container_height+ ")")
 									 .call(xrAxis);
-		return axisscale
+		return xAxisGroup
 	}
 	
 	function x_callbrush(svgContainer,x_axisscale,direction,selector,plot_setting,target_setting){
@@ -482,7 +482,7 @@
 	} 
 
 
-	function draw_messagedot(svgContainer,plot_setting,col_selector,com_selector,x_axisscale,y_axisscale,temp_date,x_data,first,drawset){
+	function draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale,x_data){
 
 
 		//used in :[stream_trend_plot_on]
@@ -501,6 +501,36 @@
 				var setoff_height=container_height*(1-ywidth_ratio)/2;
 		}
 		
+		var line = d3.svg.line()
+                 .x(function(d) {
+                   return x_axisscale(d.date)+setoff_width;
+                 })
+                 .y(function(d) {
+                   return y_axisscale(d.y)+setoff_height;
+                 });
+        //console.log(line(x_data));
+        //new version draw trend by path
+        /*
+                    .transition()
+            .duration(1000)
+            .ease("linear")
+        */
+        d3.select("."+path_selector+"_path")
+			.attr('d',line(x_data));
+        /*
+        svgContainer.append('path')
+                    .attr('class',selector+"_path "+clas)
+                    .attr("clip-path","url(#clip"+selector+")")
+                    .attr({
+                      'd': line(data),
+                      'y': 0,
+                      'stroke': color(selector),
+                      'stroke-width': '3px',
+                      'fill': 'none',
+                      'opacity':0.95
+                    });
+		*/
+		/*
 		svgContainer.append('line')
 			.attr('class',com_selector+"trend"+" axis_timestamptrend")
 			.attr("clip-path","url(#clip"+col_selector+")")
@@ -549,7 +579,7 @@
 			.attr('stroke-width',3)
 			.attr("opacity",0.95)
 			.style('stroke',function(){return color(col_selector)});
-
+		*/
 		//color is global variable defined in mscatter_plot.httml
 
 
@@ -557,17 +587,14 @@
 
 
 
-	var WrapperWS =function(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,Topic) {
+	var WrapperWS =function(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,Topic,DataArray) {
 		
 
 		var drawset_InputRate={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
 		var drawset_OutputRate={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
 		var drawset_latency={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
-
-
 		var DataLatency=[];
 		var DataInR=[];
-
 		var first=0;
 		//"ws://localhost:8080/websocketServer/"+selector
 		//"ws://localhost:8080/websocketServer/"+target
@@ -594,18 +621,42 @@
 			
 			x=evt.data.split(",")
 			if(x.length==3){
-
-				DataLatency.push(parseFloat(x[2]));
-				DataInR.push(parseFloat(x[0]));
-				DataInR.push(parseFloat(x[1]));
 				var temp_date=new Date();
+				if(Topic=="Info"){
+					DataLatency.push(parseFloat(x[2]));
+					DataInR.push(parseFloat(x[0]));
+					DataInR.push(parseFloat(x[1]));
+					DataArray['IDL'].push({'date':temp_date,'y':parseFloat(x[2])});
+					DataArray['IDIR'].push({'date':temp_date,'y':parseFloat(x[0])});
+					DataArray['IDOR'].push({'date':temp_date,'y':parseFloat(x[1])});
+					if(DataArray['IDL'].length>200){
+						DataArray['IDL'].shift();
+						DataArray['IDIR'].shift();
+						DataArray['IDOR'].shift();	
+					}
+				}else{
+					DataLatency.push(parseFloat(x[2]));
+					DataInR.push(parseFloat(x[0]));
+					DataInR.push(parseFloat(x[1]));
+					DataArray['SDL'].push({'date':temp_date,'y':parseFloat(x[2])});
+					DataArray['SDIR'].push({'date':temp_date,'y':parseFloat(x[0])});
+					DataArray['SDOR'].push({'date':temp_date,'y':parseFloat(x[1])});
+					if(DataArray['SDL'].length>200){
+						DataArray['SDL'].shift();
+						DataArray['SDIR'].shift();
+						DataArray['SDOR'].shift();	
+					}
+				}
+
+
+				
 				time_interval.push(temp_date);
 				//keep n datas in draw;
 				if(time_interval.length>400){
+					time_interval.shift();
 					DataLatency.shift();
 					DataInR.shift();
 					DataInR.shift();
-					time_interval.shift();
 				}
 				var x_extent=d3.extent(time_interval);
 				var y_extent_TPT=exten4range(d3.extent(DataInR),0.05);
@@ -618,7 +669,7 @@
 				if(y_extent_LTY[0]==y_extent_LTY[1]){
 					y_extent_LTY[1]+=1;
 				}
-
+				/*-------old version add lines first---------------
 				if(Topic=="Info"){
 					svgContainer=d3.select("#svgrd1");
 					com_selector="axis_Throughput"
@@ -640,7 +691,8 @@
 					com_selector="axis_Latency"
 					draw_messagedot(svgContainer,plot_setting,"rd6",com_selector,x_axisscale,y_axisscale_latency,temp_date,x[2],first,drawset_latency);
 
-				}
+				}-------old version add lines first---------------*/
+
 
 				//update Throughputs
 				if(y_axisscale_throughput.domain()[0]<y_extent_TPT[1]){
@@ -648,7 +700,14 @@
 					y_extent_TPT[0]=0;
 					y_extent_TPT=exten4range(y_extent_TPT,0.05);
 					y_axisscale_throughput.domain(exchange_extent(y_extent_TPT));
-					selector="axis_Throughput";
+					var selector="axis_Throughput";
+					
+
+					var yrAxis = d3.svg.axis().scale(y_axisscale_throughput).orient("left").ticks(7);
+					d3.selectAll("."+selector+"left").call(yrAxis);
+
+
+					/*-------old version remove axis redraw---------------
 					d3.selectAll("."+selector+"left").remove();
 					svgContainer=d3.select("#svgrd1");
 					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
@@ -658,7 +717,10 @@
 					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
 					svgContainer=d3.select("#svgrd5");
 					drawaxis(svgContainer,"left",y_axisscale_throughput,selector,plot_setting);
-							//draw Setting;
+					-------old version remove axis redraw---------------*/
+
+					/*-------old version update x---------------
+					//draw Setting;
 					var container_height=svgContainer.attr("height");
 					var container_width=svgContainer.attr("width");
 					//for left adjust
@@ -668,23 +730,21 @@
 					if(container_height*(1-ywidth_ratio)/2>setoff_height){
 							var setoff_height=container_height*(1-ywidth_ratio)/2;
 					}
-					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale_throughput(d3.select(this).attr("oriy1"))+setoff_height) ;});
-					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale_throughput(d3.select(this).attr("oriy2"))+setoff_height) ;});
-
+					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale_throughput(d3.select(this).attr("oriy1"))+setoff_height) ;});
+					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale_throughput(d3.select(this).attr("oriy2"))+setoff_height) ;});
+					------old version update x---------------*/
 				}
 				//update latencys
 				if(y_axisscale_latency.domain()[0]<y_extent_LTY[1]){
-					//console.log(y_axisscale.domain())
 					y_extent_LTY[0]=0;
 					y_extent_LTY=exten4range(y_extent_LTY,0.05);
 					
 					y_axisscale_latency.domain(exchange_extent(y_extent_LTY));
-					selector="axis_Latency"
-					d3.selectAll("."+selector+"left").remove();
-					svgContainer=d3.select("#svgrd3");
-					drawaxis(svgContainer,"left",y_axisscale_latency,selector,plot_setting);
-					svgContainer=d3.select("#svgrd6");
-					drawaxis(svgContainer,"left",y_axisscale_latency,selector,plot_setting);
+					var selector="axis_Latency";
+					var yrAxis = d3.svg.axis().scale(y_axisscale_latency).orient("left").ticks(7);
+					d3.selectAll("."+selector+"left").call(yrAxis);
+
+					/*------old version update x---------------
 					var container_height=svgContainer.attr("height");
 					var container_width=svgContainer.attr("width");
 					//for left adjust
@@ -694,28 +754,19 @@
 					if(container_height*(1-ywidth_ratio)/2>setoff_height){
 							var setoff_height=container_height*(1-ywidth_ratio)/2;
 					}
-					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale_latency(d3.select(this).attr("oriy1"))+setoff_height) ;});
-					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale_latency(d3.select(this).attr("oriy2"))+setoff_height) ;});
-
+					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y1",y_axisscale_latency(d3.select(this).attr("oriy1"))+setoff_height) ;});
+					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("y2",y_axisscale_latency(d3.select(this).attr("oriy2"))+setoff_height) ;});
+					------old version update x---------------*/
 				}
 				//update timestamp
 				if(x_axisscale.domain()[1]<x_extent[1]){
-					x_extent[0]=x_axisscale.domain()[0];
+					//x_extent[0]=x_axisscale.domain()[0];
 					x_axisscale.domain(x_extent);
-					selector="axis_timestamp"
-					d3.selectAll("."+selector+"bottom").remove();
-					svgContainer=d3.select("#svgrd1");
-					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-					svgContainer=d3.select("#svgrd2");
-					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-					svgContainer=d3.select("#svgrd3");
-					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-					svgContainer=d3.select("#svgrd4");
-					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-					svgContainer=d3.select("#svgrd5");
-					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
-					svgContainer=d3.select("#svgrd6");
-					drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+					var selector="axis_timestamp";
+					var xrAxis = d3.svg.axis().scale(x_axisscale).orient("bottom").ticks(7);
+					d3.selectAll("."+selector+"bottom").call(xrAxis);
+
+					/*------old version update x---------------
 					var container_height=svgContainer.attr("height");
 					var container_width=svgContainer.attr("width");
 					//for left adjust
@@ -725,10 +776,24 @@
 					if(container_width*(1-xwidth_ratio)/2>setoff_width){
 							var setoff_width=container_width*(1-xwidth_ratio)/2;
 					}
-					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x1",x_axisscale(d3.select(this).attr("orix1"))+setoff_width) ;});
-					d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x2",x_axisscale(d3.select(this).attr("orix2"))+setoff_width) ;});
+					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x1",x_axisscale(d3.select(this).attr("orix1"))+setoff_width) ;});
+					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x2",x_axisscale(d3.select(this).attr("orix2"))+setoff_width) ;});
+					------old version update x---------------*/
 				}
 
+				svgContainer=d3.select("#svgrd1");
+				path_selector="rd1"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_throughput,DataArray['IDIR']);
+				path_selector="rd2"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_throughput,DataArray['IDOR']);
+				path_selector="rd3"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_latency,DataArray['IDL']);
+				path_selector="rd4"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_throughput,DataArray['SDIR']);
+				path_selector="rd5"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_throughput,DataArray['SDOR']);
+				path_selector="rd6"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_latency,DataArray['SDL']);
 				first+=1;
 				
 			}
@@ -759,7 +824,8 @@
 				}, interval);
 			}
 		};
-
-
+		this.DataLatency = DataLatency;
+		//var DataLatency=[];
+		//var DataInR=[];
 
 	}
