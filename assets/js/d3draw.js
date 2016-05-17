@@ -187,3 +187,89 @@
 
 		//return connection;
 	}
+
+	function rect_plot_on(plot_setting,selector,y_axisscale,x_axisscale,count){
+		//just like empty plot 
+		//using a websocket to consturct streaming
+		//make this global that all draws in same scale(WrapperWs need to modify,too.)
+
+		var time_interval=[];
+		var dataY=[];
+		//
+	 	var svgC_width=parseInt(d3.select("#"+selector).style("width"))
+		var svgC_height=parseInt(d3.select("#"+selector).style("height"))
+		var svgContainer = d3.select("#"+selector)
+							.append("svg")
+							.attr("width", svgC_width)
+							.attr("height", svgC_height)
+							.attr("id","svg"+selector);
+
+		addclip(svgContainer,plot_setting,selector);
+		var container_height=svgContainer.attr("height");
+		var container_width=svgContainer.attr("width");
+		
+		var ywidth_ratio=plot_setting["ywidth_ratio"];
+		var xwidth_ratio=plot_setting["xwidth_ratio"];
+		var setoff_height=plot_setting["setoff_height"];
+		var setoff_width=plot_setting["setoff_width"];
+		
+		var width_clip=container_width-setoff_width-container_width*(1-xwidth_ratio)/2;
+		var height_clip=container_height*ywidth_ratio-setoff_height;
+
+		if(container_width*(1-xwidth_ratio)/2>setoff_width){
+				setoff_width=container_width*(1-xwidth_ratio)/2;
+		}
+		if(container_height*(1-ywidth_ratio)/2>setoff_height){
+				setoff_height=container_height*(1-ywidth_ratio)/2;
+		}
+		for(j =0 ;j<40;j++){
+			for(i =0 ;i<40;i++){
+				svgContainer.append("rect")
+							.attr("class","updateColor")
+							.attr({'x': (width_clip)/40*i+setoff_width,
+								'y':(height_clip)/40*j+setoff_height,
+								'width': (width_clip)/40*0.8 ,
+								'height':(height_clip-setoff_height)/40*0.8})
+							.attr("fill","#5D5C58");
+			}
+		}
+
+		var data=["#6C4C56","#5D5C58"]
+		var i =1;
+		d3.selectAll(".updateColor").each(function(){i+=1;i%=2;return d3.select(this).attr("fill",data[i]) ;});
+
+
+		//var color =d3.scale.linear().domain.range(][])
+		/*
+		var first=0;
+		if(count<=3){
+			if(count%3!=0)
+				selector="axis_Throughput";
+			else
+				selector="axis_Latency";
+		}else{
+			if(count%3!=0)
+				selector="axis_Throughput";
+			else
+				selector="axis_Latency";
+		}
+		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
+
+		selector="axis_timestamp"
+		drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
+		
+		svgContainer.append('path')
+		            .attr('class',"rd"+count+"_path ")
+		            .attr("clip-path","url(#cliprd"+count+")")
+		            .attr({
+		              'y': 0,
+		              'stroke': color("rd"+count),
+		              'stroke-width': '3px',
+		              'fill': 'none',
+		              'opacity':0.95
+		            });*/
+
+		
+
+		//return connection;
+	}

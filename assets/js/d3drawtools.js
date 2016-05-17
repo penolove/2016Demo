@@ -629,7 +629,7 @@
 					DataArray['IDL'].push({'date':temp_date,'y':parseFloat(x[2])});
 					DataArray['IDIR'].push({'date':temp_date,'y':parseFloat(x[0])});
 					DataArray['IDOR'].push({'date':temp_date,'y':parseFloat(x[1])});
-					if(DataArray['IDL'].length>200){
+					if(DataArray['IDL'].length>100){
 						DataArray['IDL'].shift();
 						DataArray['IDIR'].shift();
 						DataArray['IDOR'].shift();	
@@ -641,7 +641,7 @@
 					DataArray['SDL'].push({'date':temp_date,'y':parseFloat(x[2])});
 					DataArray['SDIR'].push({'date':temp_date,'y':parseFloat(x[0])});
 					DataArray['SDOR'].push({'date':temp_date,'y':parseFloat(x[1])});
-					if(DataArray['SDL'].length>200){
+					if(DataArray['SDL'].length>100){
 						DataArray['SDL'].shift();
 						DataArray['SDIR'].shift();
 						DataArray['SDOR'].shift();	
@@ -652,7 +652,7 @@
 				
 				time_interval.push(temp_date);
 				//keep n datas in draw;
-				if(time_interval.length>400){
+				if(time_interval.length>200){
 					time_interval.shift();
 					DataLatency.shift();
 					DataInR.shift();
@@ -828,4 +828,84 @@
 		//var DataLatency=[];
 		//var DataInR=[];
 
+	}
+
+
+	var updateWS =function(plot_setting,time_interval,y_axisscale,x_axisscale) {
+		//"ws://localhost:8080/websocketServer/"+selector
+		//"ws://localhost:8080/websocketServer/"+target
+		//ws://echo.websocket.org/
+		accData=[];
+		var wsUri = "ws://localhost:8080/websocketServer/Kafka/updateacc";
+
+		var websocket = new WebSocket(wsUri);
+		websocket.onopen = function(evt) { onOpen(evt) };
+		websocket.onclose = function(evt) { onClose(evt) };
+		websocket.onmessage = function(evt) { onMessage(evt) };
+		websocket.onerror = function(evt) { onError(evt) };
+
+		var onOpen=function (evt){
+			console.log("CONNECTED on ");
+		 }
+
+		var onClose=function (evt){
+			console.log("DISCONNECTED");
+		  }
+
+		var onMessage=function (evt){
+			//console.log('RESPONSE:' + evt.data);
+			
+			//x=evt.data;
+			x=evt.data.split(",")
+			if(x.length==2){
+				var temp_date=new Date();
+				time_interval.push(temp_date);
+				var x_extent=d3.extent(time_interval);
+				accData.push({'date':temp_date,'y':parseFloat(x[0])});
+
+				if(x_axisscale.domain()[1]<x_extent[1]){
+					//x_extent[0]=x_axisscale.domain()[0];
+					x_axisscale.domain(x_extent);
+					var selector="axis_timestamp";
+					var xrAxis = d3.svg.axis().scale(x_axisscale).orient("bottom").ticks(10);
+					d3.selectAll("."+selector+"bottom").call(xrAxis);
+				}
+				svgContainer=d3.select("#svgrd1");
+				path_selector="rd1"
+				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale,accData);
+				colorData=x[1].split(" ").map(function(x){return parseFloat(x)});
+				var color_extent=d3.extent(colorData);
+				var colorrect =d3.scale.linear().domain(color_extent).range(["white","black"])
+				var i =-1;
+				d3.selectAll(".updateColor").each(function(){i+=1;return d3.select(this).attr("fill",colorrect(colorData[i])) ;});
+				console.log(colorData[1599]);
+			}else{
+				console.log('RESPONSE:' + evt.data);
+			}
+		}
+
+		var onError=function (evt){
+			console.log('Error: ' + evt.data);
+		  }
+
+		this.send = function (message, callback) {
+			this.waitForConnection(function () {
+				websocket.send(message);
+				if (typeof callback !== 'undefined') {
+				  callback();
+				}
+			}, 1000);
+		};
+
+		this.waitForConnection = function (callback, interval) {
+			if (websocket.readyState === 1) {
+				callback();
+			} else {
+				var that = this;
+				// optional: implement backoff for interval here
+				setTimeout(function () {
+					that.waitForConnection(callback, interval);
+				}, interval);
+			}
+		};
 	}

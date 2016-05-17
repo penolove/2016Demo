@@ -378,8 +378,7 @@
 								}) 
 		}
 
-		var y_axisscale_latency=d3.scale.linear().domain([1,-0.025]);
-		var y_axisscale_throughput=d3.scale.linear().domain([200,-5]);
+		var y_axisscale=d3.scale.linear().domain([1,-0.025]);
 		var x_axisscale=d3.time.scale();
 		//
 		var time_interval=[];
@@ -452,26 +451,21 @@
 				add_menu_item_layer2(menu_parameter,count,scatter_plot_setting,plot_setting,trend_chart_setting);
 				var selector="rd"+count;
 
-				if(count%3!=0){
-					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_throughput,x_axisscale,count);
+				if(count==1){
+					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale,x_axisscale,count);
 				}else{
-					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_latency,x_axisscale,count);
+					rect_plot_on(parameter_setting["plot_setting"],selector,y_axisscale,x_axisscale,count)
 				}
 
 				count=count+1;
 			}
 		}
 
-		var InfoDataLatency=[];
-		var InfoDataInR=[];
-		var InfoDataOutR=[];
-		var SparkDataLatency=[];
-		var SparkDataInR=[];
-		var SparkDataOutR=[];
-		var DataArray={'IDL':InfoDataLatency,'IDIR':InfoDataInR,'IDOR':InfoDataOutR,'SDL':SparkDataLatency,'SDIR':SparkDataInR,'SDOR':SparkDataOutR};
 		//var InfoConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Info",DataArray);
 		//var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark",DataArray);
-		var updateWS = new updateWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale);
+		var updateWSq = new updateWS(plot_setting,time_interval,y_axisscale,x_axisscale);
+
+		//d3.select()
 	}
 </script>
 </html>
