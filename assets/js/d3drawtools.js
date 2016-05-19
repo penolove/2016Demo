@@ -877,7 +877,7 @@
 					//x_extent[0]=x_axisscale.domain()[0];
 					x_axisscale.domain(x_extent);
 					var selector="axis_timestamp";
-					var xrAxis = d3.svg.axis().scale(x_axisscale).orient("bottom").ticks(10);
+					var xrAxis = d3.svg.axis().scale(x_axisscale).orient("bottom").ticks(7);
 					d3.selectAll("."+selector+"bottom").call(xrAxis);
 				}
 				svgContainer=d3.select("#svgrd1");
