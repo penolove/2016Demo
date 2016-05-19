@@ -703,7 +703,12 @@
 					var selector="axis_Throughput";
 					
 
-					var yrAxis = d3.svg.axis().scale(y_axisscale_throughput).orient("left").ticks(7);
+					var yrAxis = d3.svg
+									.axis()
+									.scale(y_axisscale_throughput)
+									.orient("left")
+									.ticks(7)
+									.tickFormat(function(d){if(d>1000){return d+'k';}else{return d;}});
 					d3.selectAll("."+selector+"left").call(yrAxis);
 
 
@@ -741,7 +746,12 @@
 					
 					y_axisscale_latency.domain(exchange_extent(y_extent_LTY));
 					var selector="axis_Latency";
-					var yrAxis = d3.svg.axis().scale(y_axisscale_latency).orient("left").ticks(7);
+					var yrAxis = d3.svg
+									.axis()
+									.scale(y_axisscale_latency)
+									.orient("left")
+									.ticks(7)
+									.tickFormat(function(d){if(d>=1000){return d/1000+'k';}else{return d;}});
 					d3.selectAll("."+selector+"left").call(yrAxis);
 
 					/*------old version update x---------------
@@ -763,7 +773,7 @@
 					//x_extent[0]=x_axisscale.domain()[0];
 					x_axisscale.domain(x_extent);
 					var selector="axis_timestamp";
-					var xrAxis = d3.svg.axis().scale(x_axisscale).orient("bottom").ticks(7);
+					var xrAxis = d3.svg.axis().scale(x_axisscale).orient("bottom").ticks(4);
 					d3.selectAll("."+selector+"bottom").call(xrAxis);
 
 					/*------old version update x---------------
@@ -854,7 +864,7 @@
 
 		var onMessage=function (evt){
 			//console.log('RESPONSE:' + evt.data);
-			
+			console.log('RESPONSE:' + evt.data);
 			//x=evt.data;
 			x=evt.data.split(",")
 			if(x.length==2){
@@ -878,7 +888,10 @@
 				var colorrect =d3.scale.linear().domain(color_extent).range(["white","black"])
 				var i =-1;
 				d3.selectAll(".updateColor").each(function(){i+=1;return d3.select(this).attr("fill",colorrect(colorData[i])) ;});
-				console.log(colorData[1599]);
+				d3.select(".white_text").text(color_extent[0]/1000+'k');
+				d3.select(".black_text").text(color_extent[1]/1000+'k');
+
+				//console.log(colorData[1599]);
 			}else{
 				console.log('RESPONSE:' + evt.data);
 			}

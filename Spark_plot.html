@@ -37,7 +37,7 @@
 	window_height=window_height>=window_height_min?window_height:window_height_min;
 	
 	count=1;
-	var div_dim=[1,3];
+	var div_dim=[2,3];
 	qp=window_partition(div_dim);
 
 	function window_partition(div_dim){
@@ -473,7 +473,7 @@
 		var SparkDataOutR=[];
 		var DataArray={'IDL':InfoDataLatency,'IDIR':InfoDataInR,'IDOR':InfoDataOutR,'SDL':SparkDataLatency,'SDIR':SparkDataInR,'SDOR':SparkDataOutR};
 		var InfoConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Info",DataArray);
-		//var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark",DataArray);
+		var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark",DataArray);
 		
 	}
 </script>

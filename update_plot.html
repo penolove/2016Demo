@@ -442,7 +442,7 @@
 				var scatter_plot_setting={"filename":'test.csv'};
 				var trend_chart_setting={"filename":'trendtest.csv',"timeformat":"%Y-%m-%d %H:%M:%S"};
 
-				var plot_setting={"ywidth_ratio":0.9,"xwidth_ratio":0.9,"setoff_height":10,"setoff_width":50};
+				var plot_setting={"ywidth_ratio":0.8,"xwidth_ratio":0.8,"setoff_height":10,"setoff_width":50};
 				var parameter_setting={"scatter":scatter_plot_setting,"trend":trend_chart_setting,"plot_setting":plot_setting};
 				
 				//
@@ -450,11 +450,15 @@
 				add_menu_item_layer1(menu,menu_parameter,count,parameter_setting,paddw);
 				add_menu_item_layer2(menu_parameter,count,scatter_plot_setting,plot_setting,trend_chart_setting);
 				var selector="rd"+count;
+				var title=["Online  SVM  Accuracy"];
+
 
 				if(count==1){
-					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale,x_axisscale,count);
+					var axistitle="Accuracy";
+					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale,x_axisscale,count,title,axistitle);
 				}else{
-					rect_plot_on(parameter_setting["plot_setting"],selector,y_axisscale,x_axisscale,count)
+					var title="Reduced Support-Vectors Weights";
+					rect_plot_on(parameter_setting["plot_setting"],selector,y_axisscale,x_axisscale,count,title)
 				}
 
 				count=count+1;
