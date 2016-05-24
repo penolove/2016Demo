@@ -581,15 +581,10 @@
 			.style('stroke',function(){return color(col_selector)});
 		*/
 		//color is global variable defined in mscatter_plot.httml
-
-
 	}
-
-
 
 	var WrapperWS =function(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,Topic,DataArray) {
 		
-
 		var drawset_InputRate={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
 		var drawset_OutputRate={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
 		var drawset_latency={"trend_temp_x":0,"trend_pre_date":0,"trend_temp_date":0,"trend_tempy":0,"trend_prey":0};
@@ -790,8 +785,8 @@
 					//d3.selectAll("."+selector+"trend").each(function(){return d3.select(this).attr("x2",x_axisscale(d3.select(this).attr("orix2"))+setoff_width) ;});
 					------old version update x---------------*/
 				}
-
-				svgContainer=d3.select("#svgrd1");
+				
+				svgContainer=d3.select(".svgContainer");
 				path_selector="rd1"
 				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_throughput,DataArray['IDIR']);
 				path_selector="rd2"
@@ -804,6 +799,7 @@
 				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_throughput,DataArray['SDOR']);
 				path_selector="rd6"
 				draw_messagedot(svgContainer,plot_setting,path_selector,x_axisscale,y_axisscale_latency,DataArray['SDL']);
+				
 				first+=1;
 				
 			}

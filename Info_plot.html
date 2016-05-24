@@ -37,7 +37,7 @@
 	window_height=window_height>=window_height_min?window_height:window_height_min;
 	
 	count=1;
-	var div_dim=[2,3];
+	var div_dim=[1,3];
 	qp=window_partition(div_dim);
 
 	function window_partition(div_dim){
@@ -443,7 +443,7 @@
 				var scatter_plot_setting={"filename":'test.csv'};
 				var trend_chart_setting={"filename":'trendtest.csv',"timeformat":"%Y-%m-%d %H:%M:%S"};
 
-				var plot_setting={"ywidth_ratio":0.9,"xwidth_ratio":0.9,"setoff_height":10,"setoff_width":50};
+				var plot_setting={"ywidth_ratio":0.8,"xwidth_ratio":0.7,"setoff_height":10,"setoff_width":50};
 				var parameter_setting={"scatter":scatter_plot_setting,"trend":trend_chart_setting,"plot_setting":plot_setting};
 				
 				//
@@ -451,10 +451,10 @@
 				add_menu_item_layer1(menu,menu_parameter,count,parameter_setting,paddw);
 				add_menu_item_layer2(menu_parameter,count,scatter_plot_setting,plot_setting,trend_chart_setting);
 				var selector="rd"+count;
-				var title=["InfoSphere InputSpeed","InfoSphere OutputSpeed","InfoSphere Latency",
-							"Spark InputSpeed","Spark OutputSpeed","Spark Latency",];
+				var title=["InputSpeed","OutputSpeed","Latency",
+							"InputSpeed","OutputSpeed","Latency",];
 				if(count%3!=0){
-					var axistitle="k-tuples/s";
+					var axistitle="k-Flows/s";
 					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_throughput,x_axisscale,count,title,axistitle);
 				}else{
 					var axistitle="ms";
@@ -472,8 +472,9 @@
 		var SparkDataInR=[];
 		var SparkDataOutR=[];
 		var DataArray={'IDL':InfoDataLatency,'IDIR':InfoDataInR,'IDOR':InfoDataOutR,'SDL':SparkDataLatency,'SDIR':SparkDataInR,'SDOR':SparkDataOutR};
+
 		var InfoConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Info",DataArray);
-		var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark",DataArray);
+		//var SparkConn = new WrapperWS(plot_setting,time_interval,y_axisscale_throughput,y_axisscale_latency,x_axisscale,"Spark",DataArray);
 		
 	}
 </script>

@@ -153,6 +153,7 @@
 							.append("svg")
 							.attr("width", svgC_width)
 							.attr("height", svgC_height)
+							.attr("class","svgContainer")
 							.attr("id","svg"+selector);
 		var container_height=svgContainer.attr("height");
 		var container_width=svgContainer.attr("width");
@@ -236,6 +237,7 @@
 							.append("svg")
 							.attr("width", svgC_width)
 							.attr("height", svgC_height)
+							.attr("class","svgContainer")
 							.attr("id","svg"+selector);
 
 		addclip(svgContainer,plot_setting,selector);
