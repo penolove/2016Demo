@@ -139,7 +139,7 @@
 	}
 
 
-	function stream_trend_plot_on(plot_setting,selector,y_axisscale,x_axisscale,count,title,axistitle){
+	function stream_trend_plot_on(plot_setting,selector,y_axisscale,x_axisscale,count,title,axistitle,percent){
 		//just like empty plot 
 		//using a websocket to consturct streaming
 		//make this global that all draws in same scale(WrapperWs need to modify,too.)
@@ -187,7 +187,13 @@
 			else
 				selector="axis_Latency";
 		}
-		drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
+		if(percent==0){
+			drawaxis(svgContainer,"left",y_axisscale,selector,plot_setting);
+
+		}else{
+			drawaxis_percent(svgContainer,"left",y_axisscale,selector,plot_setting);
+		}
+		
 
 		selector="axis_timestamp"
 		drawaxis(svgContainer,"bottom",x_axisscale,selector,plot_setting);
@@ -214,10 +220,10 @@
 		        .text(title[count-1]);
 		
 		svgContainer.append("text")
-		        .attr("transform","translate("+setoff_width/3+","+(setoff_height+height_clip/2)+") rotate(-90)")
+		        .attr("transform","translate("+setoff_width/4+","+(setoff_height+height_clip/2)+") rotate(-90)")
 		        .attr("text-anchor", "middle")  
 		        .style("font-family","sans-serif")
-		        .style("font-size", "40px") 
+		        .style("font-size", "35px") 
 		        .style("font-style",'italic')
 		        .text(axistitle);
 		//return connection;

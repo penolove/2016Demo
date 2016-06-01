@@ -457,10 +457,10 @@
 							"InputSpeed","OutputSpeed","Latency",];
 				if(count%3!=0){
 					var axistitle="k-Flows/s";
-					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_throughput,x_axisscale,count,title,axistitle);
+					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_throughput,x_axisscale,count,title,axistitle,0);
 				}else{
 					var axistitle="ms";
-					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_latency,x_axisscale,count,title,axistitle);
+					stream_trend_plot_on(parameter_setting["plot_setting"],selector,y_axisscale_latency,x_axisscale,count,title,axistitle,0);
 				}
 
 				count=count+1;

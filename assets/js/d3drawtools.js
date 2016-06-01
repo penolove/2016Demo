@@ -133,6 +133,64 @@
 		return xAxisGroup
 	}
 	
+	function drawaxis_percent(svgContainer,direction,axisscale,selector,plot_setting) {
+
+		///////////////////////////////////////////////////////////////////
+		///arg:															///
+		/// svgContainer : select the svg you wnat to append axis  		///
+		/// direction: axis direction bottom , left 					///
+		/// axisscale: call d3.scale linear with domain(data range)	 ///
+		/// plot_setting :ywidth_ratio,xwidth_ratio,setoff_height,setoff_width
+		/// selector : container ID									 	///
+		///////////////////////////////////////////////////L.R 2016/1/10///
+		//used in [scatter_plot_on,trend_plot_on,empty_plot_on,stream_trend_plot_on]
+		var container_height=svgContainer.attr("height");
+		var container_width=svgContainer.attr("width");
+		var ywidth_ratio=plot_setting["ywidth_ratio"];
+		var xwidth_ratio=plot_setting["xwidth_ratio"];
+		var setoff_height=plot_setting["setoff_height"];
+		var setoff_width=plot_setting["setoff_width"];
+
+		if(container_width*(1-xwidth_ratio)/2>setoff_width){
+				var setoff_width=container_width*(1-xwidth_ratio)/2;
+		}
+		if(container_height*(1-ywidth_ratio)/2>setoff_height){
+					var setoff_height=container_height*(1-ywidth_ratio)/2;
+		}
+		
+		var width_rect=container_width-setoff_width-container_width*(1-xwidth_ratio)/2;
+		var height_rect=container_height*ywidth_ratio;
+		
+		if(direction=="bottom"){
+			////bottom axis adjustment////
+			axisscale.range([0, width_rect]);
+			//bottom cut
+			if(container_height*(1-ywidth_ratio)>=20){
+				container_height=height_rect;
+			}else{
+				container_height=container_height-20;
+			}
+		}else if (direction=="left"){
+			////left axis adjustment////
+			axisscale.range([0, height_rect-setoff_height]);
+			///left axis should adjust 30px
+			//avoid upper word were cuted
+			container_height=setoff_height;
+		}
+		//left adjust
+
+
+		xrAxis = d3.svg.axis().scale(axisscale).orient(direction).ticks(7).tickFormat(function(d){return d+'%'});;
+
+		var xAxisGroup = svgContainer.append("g") //於svg上畫出
+									 .attr("class", "axis "+selector+direction)
+									 .attr("transform", "translate("+setoff_width+"," +container_height+ ")")
+									 .call(xrAxis);
+		return xAxisGroup
+	}
+
+
+
 	function x_callbrush(svgContainer,x_axisscale,direction,selector,plot_setting,target_setting){
 			// used to create brush object
 			// lots of risk
@@ -624,7 +682,7 @@
 					DataArray['IDL'].push({'date':temp_date,'y':parseFloat(x[2])});
 					DataArray['IDIR'].push({'date':temp_date,'y':parseFloat(x[0])});
 					DataArray['IDOR'].push({'date':temp_date,'y':parseFloat(x[1])});
-					if(DataArray['IDL'].length>100){
+					if(DataArray['IDL'].length>200){
 						DataArray['IDL'].shift();
 						DataArray['IDIR'].shift();
 						DataArray['IDOR'].shift();	
@@ -636,7 +694,7 @@
 					DataArray['SDL'].push({'date':temp_date,'y':parseFloat(x[2])});
 					DataArray['SDIR'].push({'date':temp_date,'y':parseFloat(x[0])});
 					DataArray['SDOR'].push({'date':temp_date,'y':parseFloat(x[1])});
-					if(DataArray['SDL'].length>100){
+					if(DataArray['SDL'].length>200){
 						DataArray['SDL'].shift();
 						DataArray['SDIR'].shift();
 						DataArray['SDOR'].shift();	
@@ -867,7 +925,7 @@
 				var temp_date=new Date();
 				time_interval.push(temp_date);
 				var x_extent=d3.extent(time_interval);
-				accData.push({'date':temp_date,'y':parseFloat(x[0])});
+				accData.push({'date':temp_date,'y':parseFloat(x[0])*100});
 
 				if(x_axisscale.domain()[1]<x_extent[1]){
 					//x_extent[0]=x_axisscale.domain()[0];
